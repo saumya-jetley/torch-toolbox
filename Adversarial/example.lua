@@ -3,6 +3,7 @@ require('torch')
 require('nn')
 require('image')
 require('paths')
+adversarial_fast = require 'utils/adversarial_fast'
 torch.setdefaulttensortype('torch.FloatTensor')
 
 
@@ -12,15 +13,15 @@ local mean = 118.380948/255  -- global mean used to train overfeat
 local std = 61.896913/255    -- global std used to train overfeat
 local intensity = 1          -- pixel intensity for gradient sign
 
-local path_img = 'bee.jpg'
-local path_model = 'model.net'
+local path_img = 'overfeat-torch/bee.jpg'
+local path_model = 'overfeat-torch/model.net'
 -- this script requires pretrained overfeat model from the repo
 -- (https://github.com/jhjin/overfeat-torch)
 -- it will fetch the repo and create the model if it does not exist
 
 
 -- get dependent files
-if not paths.filep('model.net') then
+if not paths.filep(path_model) then
    os.execute([[
       git clone https://github.com/jhjin/overfeat-torch
       cd overfeat-torch
@@ -28,17 +29,18 @@ if not paths.filep('model.net') then
       . install.sh && th run.lua && mv model.net .. && cd ..
    ]])
 end
-if not paths.filep('bee.jpg') then
+if not paths.filep(path_img) then
    os.execute('wget https://raw.githubusercontent.com/sermanet/OverFeat/master/samples/bee.jpg')
 end
-if not paths.filep('overfeat_label.lua') then
+if not paths.filep('overfeat-torch/overfeat_label.lua') then
    os.execute('wget https://raw.githubusercontent.com/jhjin/overfeat-torch/master/overfeat_label.lua')
 end
-local label = require('overfeat_label')
+local label = require('overfeat-torch/overfeat_label')
 
 
 -- resize input/label
 local img = image.scale(image.load(path_img), '^'..eye)
+
 local tx = math.floor((img:size(3)-eye)/2) + 1
 local ly = math.floor((img:size(2)-eye)/2) + 1
 img = img[{{},{ly,ly+eye-1},{tx,tx+eye-1}}]
@@ -52,7 +54,8 @@ model.modules[#model.modules] = nn.LogSoftMax()
 local loss = nn.ClassNLLCriterion()
 
 -- generate adversarial examples
-local img_adv = require('adversarial-fast')(model, loss, img:clone(), label_nb, std, intensity)
+local img_adv = adversarial_fast(model, loss, img:clone(), label_nb, std, intensity)
+img_adv = img_adv[1]
 
 model.modules[#model.modules] = nn.SoftMax()
 -- check prediction results
@@ -69,8 +72,10 @@ print('==> mean absolute diff between the original and adversarial images[min/ma
 
 image.save('img.png', img:mul(std):add(mean):clamp(0,255))
 image.save('img_adv.png', img_adv:mul(std):add(mean):clamp(0,255))
+image.save('img_diff.png',img_diff:mul(std):mul(255):clamp(0,255))
 
 if pcall(require,'qt') then
-  local img_cat = torch.cat(torch.cat(img, img_adv, 3), img_diff:mul(127), 3)
+  local img_cat = torch.cat(torch.cat(img, img_adv, 3), img_diff, 3)
   image.display(img_cat)
 end
+

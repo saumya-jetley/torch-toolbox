@@ -11,6 +11,8 @@ local function adversarial_fast(model, loss, x, y, std, intensity)
    if x:dim() == 3 then
       x = x:view(1, x:size(1), x:size(2), x:size(3))
       batch = true
+   else
+      batch = true
    end
 
    -- consider y as tensor
@@ -22,15 +24,16 @@ local function adversarial_fast(model, loss, x, y, std, intensity)
    local y_hat = model:updateOutput(x)
 
    -- use predication as label if not provided
-   local _, target = nil, y
+   local _, target = nil --, y
    if target == nil then
       _, target = y_hat:max(y_hat:dim())
    end
-
+  print(target)
    -- find gradient of input (inplace)
    local cost = loss:backward(y_hat, target)
    local x_grad = model:updateGradInput(x, cost)
    local noise = x_grad:sign():mul(intensity/255)
+
 
    -- normalize noise intensity
    if type(std) == 'number' then
@@ -41,9 +44,6 @@ local function adversarial_fast(model, loss, x, y, std, intensity)
       end
    end
 
-   if batch then
-      x = x:view(x:size(2), x:size(3), x:size(4))
-   end
 
    -- return adversarial examples (inplace)
    return x:add(noise)
