@@ -4,33 +4,34 @@ require('torch')
 require('nn')
 require('image')
 require('paths')
-
 adversarial_fast = require'utils/adversarial_fast'
 preprocess_data = require 'utils/preprocess_data'
 unprocess_data = require 'utils/unprocess_data' 
 save_batch = require 'utils/save_batch'
-
 torch.setdefaulttensortype('torch.FloatTensor')
 
+
 cmd_params={
-action = 'generate', -- 'evaluate'
+action = 'evaluate', -- 'generate'
 mode = 'unproc', -- 'preproc'
-path_model = 'overfeat-torch/model.net',
+path_model = '#overfeat-torch/model.net',
 batch_size = 1,
 image_size = 231,        -- small net requires 231x231
 noise_intensity = 1,           -- pixel intensity for gradient sign
 save_image = 'adv_images',
 --path_img = 'data.t7'
-path_label = 'dataset/label_gt.lua', -- label file (in order*)
-path_img = 'dataset/image_gt.lua', -- image file (in order*)
+path_label = '#dataset/label_gt.lua', -- label file (in order*)
+path_img = '#dataset/image_gt.lua', -- image file (in order*)
 mean = 118.380948/255,   -- global mean used to train overfeat
 std = 61.896913/255,     -- global std used to train overfeat
-list_labels = 'dataset/overfeat_label.lua'
+list_labels = '#dataset/overfeat_label.lua'
 }
+
 
 -- update the cmd_params from command terminal input
 cmd_params = xlua.envparams(cmd_params)
 
+-- Obtaining the input parameters in work variables
 mode = cmd_params.mode
 path_model = cmd_params.path_model
 batch_size = cmd_params.batch_size
@@ -44,11 +45,12 @@ mean = cmd_params.mean
 std = cmd_params.std
 list_labels = cmd_params.list_labels
 action = cmd_params.action
-
+-- Extra runtime variables
 tot_incorrect = torch.Tensor(1):fill(0)
 tot_evals = torch.Tensor(1):fill(0)
 save_id = 0
 
+-- Start processing things..........
 if not paths.filep(list_labels) then
 	print('List of label names file not found!')
 else
@@ -142,9 +144,15 @@ for ind, ind_batch in ipairs(batch_indices) do
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
 		local y_hat = model:forward(input_imgs)
-		local val, idx = y_hat:max(2) --sj		
+	        if batch_size==1 then
+	    	        y_nhat = y_hat:reshape(1,y_hat:size(1))
+		else
+			y_nhat = y_hat
+		end
+		print(y_nhat:size())
+		local val, idx = y_nhat:max(2) --sj		
 		--compare with the ground truth
-		local incorrect = torch.ne(idx, input_lbs)
+		local incorrect = torch.ne(idx:float(), input_lbs)
 		--accumulate the error
 		tot_incorrect = tot_incorrect:add(incorrect:sum())
 		tot_evals = tot_evals:add(incorrect:size(1))
@@ -156,7 +164,7 @@ if action=='evaluate' then
 	-- print the cumulative error
 	print('Total images evaluated:'.. tot_evals[1])
 	print('Total incorrect predictions:'.. tot_incorrect[1])
-	print('Percentage Error:'.. tot_incorrect:div(tot_evals):mul(100) .. '%')
+	print('Percentage Error:'.. tot_incorrect:div(tot_evals[1]):mul(100)[1].. '%')
 end
 
 print('Succesfully Completed The Code Run')
