@@ -7,3 +7,5 @@
 
 # tmp files from vim
 *.sw?
+# Data files
+\#*
