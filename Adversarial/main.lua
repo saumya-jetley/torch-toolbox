@@ -8,28 +8,36 @@ adversarial_fast = require'utils/adversarial_fast'
 preprocess_data = require 'utils/preprocess_data'
 unprocess_data = require 'utils/unprocess_data' 
 save_batch = require 'utils/save_batch'
+model_load = require 'utils/model_load'
+aug_utils = require 'utils/aug_utils.lua'
+
 torch.setdefaulttensortype('torch.FloatTensor')
 
 
 cmd_params={
 action = 'evaluate', -- 'generate'
 mode = 'unproc', -- 'preproc'
-path_model = '#overfeat-torch/model.net',
+path_model = '{"#overfeat-torch/model.net"}',
+atten = 0,
 batch_size = 1,
 image_size = 231,        -- small net requires 231x231
 noise_intensity = 1,           -- pixel intensity for gradient sign
 save_image = 'adv_images',
---path_img = 'data.t7'
+--path_img = 'data.t7',
 path_label = '#dataset/label_gt.lua', -- label file (in order*)
 path_img = '#dataset/image_gt.lua', -- image file (in order*)
+list_labels = '#dataset/overfeat_label.lua',
 mean = 118.380948/255,   -- global mean used to train overfeat
 std = 61.896913/255,     -- global std used to train overfeat
-list_labels = '#dataset/overfeat_label.lua'
+platformtype = 'cuda',
+gpumode = 1,
+gpusetdevice = 1,
 }
 
 
 -- update the cmd_params from command terminal input
 cmd_params = xlua.envparams(cmd_params)
+_G.value = cmd_params -- make the input settings globally available
 
 -- Obtaining the input parameters in work variables
 mode = cmd_params.mode
@@ -45,6 +53,7 @@ mean = cmd_params.mean
 std = cmd_params.std
 list_labels = cmd_params.list_labels
 action = cmd_params.action
+
 -- Extra runtime variables
 tot_incorrect = torch.Tensor(1):fill(0)
 tot_evals = torch.Tensor(1):fill(0)
@@ -63,8 +72,8 @@ if mode=='preproc' then
 		print('database file (t7) not found!')
 	else
 		data = torch.load(path_img)
-		images = data.train_data --sj
-		labels = data.train_labels --sj
+		images = data.trainData.data --sj
+		labels = data.trainData.labels --sj
 		num_img = images:size(1) --sj
 	end
 elseif mode=='unproc' then
@@ -81,15 +90,14 @@ end
 if not paths.filep(path_model) then
   print('model not found!') 
 else
-  model = torch.load(path_model) --sj
+  model = model_load(path_model, atten, aug_utils.cast)
 end
 
 -- randomize the images indices for access
 local shuffled_indices = torch.randperm(num_img):long()
 local batch_indices = shuffled_indices:split(batch_size)
-
 if mode=='unproc' then
-	--shuffle the elements in the tables
+	--shuffle the elements in the tables (for unproc data)
 	for sh_ind = 1,1,num_img do
 		images[sh_ind],images[shuffled_indices[sh_ind]] = images[shuffled_indices[sh_ind]], images[sh_ind]
 		labels[sh_ind],labels[shuffled_indices[sh_ind]] = labels[shuffled_indices[sh_ind]], labels[sh_ind]
@@ -100,8 +108,8 @@ for ind, ind_batch in ipairs(batch_indices) do
 	--DATA
 	-- create a NEW 4D tensor for images/NEW 2D tensor for labels
 	if mode=='preproc' then
-		input_imgs = images:index(1,v)
-		input_lbs = labels:index(1,v)
+		input_imgs = images:index(1,ind_batch)
+		input_lbs = labels:index(1,ind_batch)
 	elseif mode=='unproc' then
 		--select the batch_sized subsets using unpack
 		input_imgs, input_lbs = preprocess_data(unpack(images,(ind-1)*batch_size+1,ind*batch_size), unpack(labels,(ind-1)*batch_size+1,ind*batch_size), batch_size, image_size, mean, std)
