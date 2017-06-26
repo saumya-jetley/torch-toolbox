@@ -1,11 +1,12 @@
 require('nn')
 require('cunn')
 torch.setdefaulttensortype('torch.DoubleTensor')
-
+model_forward=require('utils/model_forward')
+model_backward=require('utils/model_backward')
 
 -- "Explaining and harnessing adversarial examples"
 -- Ian Goodfellow, 2015
-local function adversarial_fast(model, loss, x, y, std, intensity, cast)
+local function adversarial_fast(model, loss, x, y, std, intensity, cast, atten)
    assert(loss.__typename == 'nn.CrossEntropyCriterion')
    local intensity = intensity or 1
 
@@ -26,7 +27,8 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast)
    end
 
    -- compute output
-   local y_hat = model:forward(x)
+   --local y_hat = model:forward(x)
+   local y_hat = model_forward(model, atten, x)	
 
    -- use predication as label if not provided
    local _, target = nil , y
@@ -37,7 +39,8 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast)
    -- find gradient of input (inplace)
    local cost = loss:forward(y_hat, target)
    local cost_grad = loss:backward(y_hat, target)
-   local x_grad = model:backward(x, cost_grad)
+   --local x_grad = model:backward(x, cost_grad)
+   local x_grad = model_backward(model, atten, x, cost_grad)
    local noise = (x_grad:sign():mul(intensity/255)):double()
 
 
