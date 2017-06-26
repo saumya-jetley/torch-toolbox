@@ -1,17 +1,22 @@
 require('nn')
+require('cunn')
+torch.setdefaulttensortype('torch.DoubleTensor')
+
 
 -- "Explaining and harnessing adversarial examples"
 -- Ian Goodfellow, 2015
-local function adversarial_fast(model, loss, x, y, std, intensity)
-   assert(loss.__typename == 'nn.ClassNLLCriterion')
+local function adversarial_fast(model, loss, x, y, std, intensity, cast)
+   assert(loss.__typename == 'nn.CrossEntropyCriterion')
    local intensity = intensity or 1
 
    -- consider x as batch
    local batch = false
    if x:dim() == 3 then
+      print('Dimension 3')
       x = x:view(1, x:size(1), x:size(2), x:size(3))
       batch = true
    else
+      print('Dimension 4')
       batch = true
    end
 
@@ -24,15 +29,16 @@ local function adversarial_fast(model, loss, x, y, std, intensity)
    local y_hat = model:updateOutput(x)
 
    -- use predication as label if not provided
-   local _, target = nil --, y
+   local _, target = nil , y
    if target == nil then
       _, target = y_hat:max(y_hat:dim())
    end
-  print(target)
+
    -- find gradient of input (inplace)
-   local cost = loss:backward(y_hat, target)
-   local x_grad = model:updateGradInput(x, cost)
-   local noise = x_grad:sign():mul(intensity/255)
+   local cost = loss:forward(y_hat, target)
+   local cost_grad = loss:backward(y_hat, target)
+   local x_grad = model:updateGradInput(x, cost_grad)
+   local noise = (x_grad:sign():mul(intensity/255)):double()
 
 
    -- normalize noise intensity
@@ -43,7 +49,6 @@ local function adversarial_fast(model, loss, x, y, std, intensity)
          noise[{{},{c},{},{}}]:div(std[c])
       end
    end
-
 
    -- return adversarial examples (inplace)
    return x:add(noise)

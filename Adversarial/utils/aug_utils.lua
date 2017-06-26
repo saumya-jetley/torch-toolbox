@@ -2,20 +2,16 @@ require 'torch'
 local aug_utils = {}
 cparams = _G.value
 
+
 -- support function - Data casting
 function aug_utils.cast(t)
    if cparams.platformtype == 'cuda' then
-      require 'cunn'
-        gpumode = cparams.gpumode
-        if gpumode==1 then
-            cutorch.setDevice(cparams.gpu_setDevice)
-        end
       return t:cuda()
-   elseif cparams.platformtype == 'float' then
-      return t:float()
-   elseif cparams.platformtype == 'cl' then
-      require 'clnn'
-      return t:cl()
+   elseif cparams.platformtype == 'double' then
+      return t:double()
+   --elseif cparams.platformtype == 'cl' then
+   --  require 'clnn'
+   --   return t:cl()
    else
       error('Unknown type '..cparams.platformtype)
    end

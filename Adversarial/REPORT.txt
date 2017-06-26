@@ -1,0 +1,10 @@
+-[[ *****Report of working state******
+1. Works for original overfeat network 
+	1. works in generate mode 
+		- unit batch and larger
+		- gpumode and cpumode
+	2. works in evaluate mode 
+		- unit batch and larger
+		- gpumode and cpumode
+--]]
+
