@@ -1,1 +1,20 @@
-Dimension 4	
+confidence:	
+ 10.5883
+  8.5090
+ 13.5376
+ 12.4498
+ 11.0609
+[torch.DoubleTensor of size 5x1]
+
+confidence:	
+ 10.9401
+ 10.1593
+ 11.6160
+  9.3509
+  9.7481
+[torch.DoubleTensor of size 5x1]
+
+Total images evaluated:10	
+Total incorrect predictions:10	
+Percentage Error:100%	
+Succesfully Completed The Code Run	

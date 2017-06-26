@@ -157,7 +157,7 @@ for ind, ind_batch in ipairs(batch_indices) do
 		local img_adv_normal = unprocess_data(img_adv, batch_size, image_size, mean, std)
 		-- save the images in the save_folder
 		save_id = save_batch(img_adv_normal, save_id, batch_size)
-
+		return
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
 		local y_nhat = model:forward(input_imgs)
@@ -185,4 +185,3 @@ if pcall(require,'qt') then
   image.display(img_cat)
 end
 --]]
-

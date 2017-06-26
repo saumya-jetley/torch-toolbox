@@ -26,7 +26,7 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast)
    end
 
    -- compute output
-   local y_hat = model:updateOutput(x)
+   local y_hat = model:forward(x)
 
    -- use predication as label if not provided
    local _, target = nil , y
@@ -37,7 +37,7 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast)
    -- find gradient of input (inplace)
    local cost = loss:forward(y_hat, target)
    local cost_grad = loss:backward(y_hat, target)
-   local x_grad = model:updateGradInput(x, cost_grad)
+   local x_grad = model:backward(x, cost_grad)
    local noise = (x_grad:sign():mul(intensity/255)):double()
 
 

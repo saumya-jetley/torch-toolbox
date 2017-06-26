@@ -6,5 +6,20 @@
 	2. works in evaluate mode 
 		- unit batch and larger
 		- gpumode and cpumode
+2. Works for general case (CUBS) 
+	1. works in generate mode
+		- not in unit batch mode: something to do with the network mostly
+		- works in larger batch sizes
+		- works in gpumode and cpumode
+	2. works in evaluate mode
+		- not in unit batch mode: something to do with the network mostly
+		- works in larger batch sizes
+		- works in gpumode and cpumode
+
+*Imp notes*
+This error is weird: observed it once and now haven't seen it.
+Keeping it for future checks
+The table.unpack function returns a TABLE when it is a SUBSET else it unpacks as an ARRAY
+Hence, if the batchsize = tablesize extra {} required; else no extra {} required
 --]]
 
