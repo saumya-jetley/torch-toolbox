@@ -62,3 +62,4 @@ export gpumode=1
 export gpusetdevice=1
 export platformtype='cuda'
 th ./main.lua | tee runtimerecord.txt
+

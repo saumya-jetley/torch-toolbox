@@ -137,7 +137,7 @@ for ind, ind_batch in ipairs(batch_indices) do
 		--model.modules[#model.modules] = nn.LogSoftMax()
 		--local loss = nn.ClassNLLCriterion()
 		local loss = aug_utils.cast(nn.CrossEntropyCriterion())
-		local img_adv = adversarial_fast(model, loss, input_imgs:clone(), input_lbs:clone(), std, noise_intensity, aug_utils.cast)
+		local img_adv = adversarial_fast(model, loss, input_imgs:clone(), input_lbs:clone(), std, noise_intensity, aug_utils.cast, atten)
 		--model.modules[#model.modules] = nn.SoftMax()
 
 		--[[
