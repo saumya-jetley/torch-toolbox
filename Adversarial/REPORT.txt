@@ -8,11 +8,11 @@
 		- gpumode and cpumode
 2. Works for general case (CUBS) 
 	1. works in generate mode
-		- not in unit batch mode: something to do with the network mostly
+		- NOT in unit batch mode: something to do with the network mostly
 		- works in larger batch sizes
 		- works in gpumode and cpumode
 	2. works in evaluate mode
-		- not in unit batch mode: something to do with the network mostly
+		- NOT in unit batch mode: something to do with the network mostly
 		- works in larger batch sizes
 		- works in gpumode and cpumode
 

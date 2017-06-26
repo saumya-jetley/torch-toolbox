@@ -21,7 +21,7 @@ atten = 0,
 batch_size = 2,
 image_size = 231,        -- small net requires 231x231
 noise_intensity = 1,           -- pixel intensity for gradient sign
-save_image = 'adv_images',
+path_save = 'adv_images',
 --path_img = 'data.t7',
 path_label = '#dataset/label_gt.lua', -- label file (in order*)
 path_img = '#dataset/image_gt.lua', -- image file (in order*)
@@ -46,7 +46,7 @@ atten= cmd_params.atten
 batch_size = cmd_params.batch_size
 image_size = cmd_params.image_size
 noise_intensity = cmd_params.noise_intensity
-save_image = cmd_params.save_image
+path_save = cmd_params.path_save
 --path_img = cmd_params.path_img
 path_label = cmd_params.path_label
 path_img = cmd_params.path_img
@@ -130,7 +130,7 @@ for ind, ind_batch in ipairs(batch_indices) do
 		--model.modules[#model.modules] = nn.LogSoftMax()
 		--local loss = nn.ClassNLLCriterion()
 		local loss = aug_utils.cast(nn.CrossEntropyCriterion())
-		local img_adv = adversarial_fast(model, loss, input_imgs:clone(), input_lbs, std, noise_intensity, aug_utils.cast)
+		local img_adv = adversarial_fast(model, loss, input_imgs:clone(), input_lbs:clone(), std, noise_intensity, aug_utils.cast)
 		--model.modules[#model.modules] = nn.SoftMax()
 
 		--[[
@@ -156,7 +156,7 @@ for ind, ind_batch in ipairs(batch_indices) do
 		-- unnormalise the adversarial images
 		local img_adv_normal = unprocess_data(img_adv, batch_size, image_size, mean, std)
 		-- save the images in the save_folder
-		save_id = save_batch(img_adv_normal, save_id, batch_size)
+		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, path_save)
 		return
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
