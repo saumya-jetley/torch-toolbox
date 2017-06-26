@@ -60,6 +60,13 @@ tot_incorrect = torch.Tensor(1):fill(0)
 tot_evals = torch.Tensor(1):fill(0)
 save_id = 0
 
+-- Create the files for images and labels
+if action=='generate' then
+	im_file = io.open(path_save.. '/image_gt.lua',"w")
+	im_file:write('return{')
+	lb_file = io.open(path_save.. '/label_gt.lua',"w")
+	lb_file:write('return{')
+end
 -- GPU mode initialisation
 if cmd_params.platformtype == 'cuda' then
       require 'cunn'
@@ -156,13 +163,13 @@ for ind, ind_batch in ipairs(batch_indices) do
 		-- unnormalise the adversarial images
 		local img_adv_normal = unprocess_data(img_adv, batch_size, image_size, mean, std)
 		-- save the images in the save_folder
-		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, path_save)
-		return
+		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, im_file, lb_file, path_save)
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
 		local y_nhat = model:forward(input_imgs)
 		local val, idx = y_nhat:max(y_nhat:dim())
-		print('confidence:') print(val)		
+		--print('confidence:') print(val)		
+		print('**Index:') print(idx) print ('GT index:') print(input_lbs)
 		--compare with the ground truth
 		local incorrect = torch.ne(idx:double(), input_lbs)
 		--accumulate the error
@@ -170,8 +177,12 @@ for ind, ind_batch in ipairs(batch_indices) do
 		tot_evals = tot_evals:add(incorrect:size(1))
 	end
 end
-
-if action=='evaluate' then
+if action=='generate' then
+	im_file:write('}') 
+	lb_file:write('}')
+	im_file:close()
+	lb_file:close() 
+elseif action=='evaluate' then
 	-- print the cumulative error
 	print('Total images evaluated:'.. tot_evals[1])
 	print('Total incorrect predictions:'.. tot_incorrect[1])
