@@ -39,26 +39,26 @@ function model_load(names, atten_code, cast)
                 model_local2 = nn.Sequential()
                 model_local2:add(cast(model_wts_local2))
 
-                model_wts_global1 = torch.load(names[2])
-                model_global1 = nn.Sequential()
-                model_global1:add(cast(model_wts_global1))
+                model_wts_global2 = torch.load(names[3])
+                model_global2 = nn.Sequential()
+                model_global2:add(cast(model_wts_global2))
 
-                model_wts_atten1 = torch.load(names[3])
+                model_wts_atten1 = torch.load(names[4])
                 model_atten1 = nn.Sequential()
                 model_atten1:add(cast(model_wts_atten1))
 
-                model_wts_atten2 = torch.load(names[3])
+                model_wts_atten2 = torch.load(names[5])
                 model_atten2 = nn.Sequential()
                 model_atten2:add(cast(model_wts_atten2))
 
-                model_wts_match = torch.load(names[4])
+                model_wts_match = torch.load(names[6])
                 model_match = nn.Sequential()
                 model_match:add(cast(model_wts_match))
 
                 model = {}
                 model[1] = model_local1
 		model[2] = model_local2 
-                model[3] = model_global1
+                model[3] = model_global2
                 model[4] = model_atten1
 		model[5] = model_atten2
                 model[6] = model_match

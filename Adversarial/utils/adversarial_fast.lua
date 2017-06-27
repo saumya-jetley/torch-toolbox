@@ -29,7 +29,7 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast, atten)
    -- compute output
    --local y_hat = model:forward(x)
    local outputs  = model_forward(model, atten, x)	
-   local y_hat = output[#outputs]
+   local y_hat = outputs[#outputs]
 
    -- use predication as label if not provided
    local _, target = nil , y

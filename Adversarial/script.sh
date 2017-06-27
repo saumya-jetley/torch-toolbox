@@ -40,6 +40,10 @@ export gpumode=1
 export gpusetdevice=1
 export platformtype='cuda'
 th ./main.lua | tee runtimerecord.txt
+#-------results for fwd run---------#
+#Total images evaluated:5794	
+#Total incorrect predictions:2017	
+#Percentage Error:34.811874352779%
 END
 
 :<<'END'
@@ -84,3 +88,7 @@ export gpumode=1
 export gpusetdevice=1
 export platformtype='cuda'
 th ./main.lua | tee runtimerecord.txt
+#-------results for fwd run--------#
+#Total images evaluated:5794	
+#Total incorrect predictions:1557	
+#Percentage Error:26.872626855368%

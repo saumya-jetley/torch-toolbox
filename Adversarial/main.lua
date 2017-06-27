@@ -90,8 +90,8 @@ if mode=='preproc' then
 		print('database file (t7) not found!')
 	else
 		data = torch.load(path_img)
-		images = data.trainData.data --sj
-		labels = data.trainData.labels:squeeze()--sj
+		images = data.testData.data --sj
+		labels = data.testData.labels:squeeze()--sj
 		num_img = images:size(1) --sj
 	end
 elseif mode=='unproc' then
@@ -168,8 +168,9 @@ for ind, ind_batch in ipairs(batch_indices) do
 		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, im_file, lb_file, path_save)
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
-		local y_nhat = model_forward(model, atten, input_imgs)
-		local val, idx = y_nhat:max(y_nhat:dim())
+		local outputs  = model_forward(model, atten, input_imgs)
+		local y_hat = outputs[#outputs]
+		local val, idx = y_hat:max(y_hat:dim())
 		--print('confidence:') print(val)		
 		print('**Index:') print(idx) print ('GT index:') print(input_lbs)
 		--compare with the ground truth
