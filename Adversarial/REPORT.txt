@@ -21,5 +21,9 @@ This error is weird: observed it once and now haven't seen it.
 Keeping it for future checks
 The table.unpack function returns a TABLE when it is a SUBSET else it unpacks as an ARRAY
 Hence, if the batchsize = tablesize extra {} required; else no extra {} required
+
+1. models to be shared (all 4 or more)
+2. the variable during the fwd run to be shared (via global variable maybe)
+3. fwd and bkwd run for comparison at different epsilons
 --]]
 

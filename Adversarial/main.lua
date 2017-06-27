@@ -9,6 +9,8 @@ preprocess_data = require 'utils/preprocess_data'
 unprocess_data = require 'utils/unprocess_data' 
 save_batch = require 'utils/save_batch'
 model_load = require 'utils/model_load'
+model_forward=require('utils/model_forward')
+model_backward=require('utils/model_backward')
 
 torch.setdefaulttensortype('torch.DoubleTensor')
 
@@ -166,7 +168,7 @@ for ind, ind_batch in ipairs(batch_indices) do
 		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, im_file, lb_file, path_save)
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
-		local y_nhat = model:forward(input_imgs)
+		local y_nhat = model_forward(model, atten, input_imgs)
 		local val, idx = y_nhat:max(y_nhat:dim())
 		--print('confidence:') print(val)		
 		print('**Index:') print(idx) print ('GT index:') print(input_lbs)
