@@ -1,0 +1,22 @@
+%1. Read all the images in the train/val folders
+%2. Save the path in the image_file.lua
+%3. Save the label_id which is the id when read in alpha order
+mode = 'train'; %val;
+image_file = fopen('image_gt.lua','w');
+label_file = fopen('label_gt.lua','w');
+fprintf()
+fprintf()
+
+mainpath = strcat('/home/sjvision/spinoza/SaumyaJetley/ILSVRC/trainval/',mode);
+folders = dir(mainpath);
+for i=1:size(folders,1)
+    if(strcmp(folders(i).name,'.') || strcmp(folders(i).name,'..'))
+        continue
+    else
+        files = dir(strcat(mainpath, '/', folders(i).name,'/*.JPEG'));
+        for j=1:size(files,1)
+            fprintf(image_file,'\"%s\"\n',files(j).name);
+            fprintf(
+        end
+    end
+end
