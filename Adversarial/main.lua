@@ -4,6 +4,7 @@ require('torch')
 require('nn')
 require('image')
 require('paths')
+require('gnuplot')
 adversarial_fast = require'utils/adversarial_fast'
 preprocess_data = require 'utils/preprocess_data'
 unprocess_data = require 'utils/unprocess_data' 
@@ -60,6 +61,7 @@ action = cmd_params.action
 -- Extra runtime variables
 tot_incorrect = torch.Tensor(1):fill(0)
 tot_evals = torch.Tensor(1):fill(0)
+conf_hist = torch.Tensor(10):fill(0)
 save_id = 0
 
 -- Create the files for images and labels
@@ -90,8 +92,8 @@ if mode=='preproc' then
 		print('database file (t7) not found!')
 	else
 		data = torch.load(path_img)
-		images = data.testData.data --sj
-		labels = data.testData.labels:squeeze()--sj
+		images = data.testData.data --use TEST for evaluate
+		labels = data.testData.labels:squeeze() --use TEST for evaluate
 		num_img = images:size(1) --sj
 	end
 elseif mode=='unproc' then
@@ -169,15 +171,24 @@ for ind, ind_batch in ipairs(batch_indices) do
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
 		local outputs  = model_forward(model, atten, input_imgs)
-		local y_hat = outputs[#outputs]
+		local y_hat = aug_utils.cast(nn.SoftMax()):forward(outputs[#outputs])
+
 		local val, idx = y_hat:max(y_hat:dim())
-		--print('confidence:') print(val)		
-		print('**Index:') print(idx) print ('GT index:') print(input_lbs)
-		--compare with the ground truth
 		local incorrect = torch.ne(idx:double(), input_lbs)
+		local conf_quant = torch.floor(val*10)
+	
+		for bind=1,batch_size,1 do
+			if incorrect[bind][1]==0 then --it is correct
+				conf_hist[conf_quant[bind][1]+1] = conf_hist[conf_quant[bind][1]+1]+1
+			end
+		end		
+		--print('confidence:') print(val)		
+		--print('**Index:') print(idx) print ('GT index:') print(input_lbs)
+		--compare with the ground truth
 		--accumulate the error
 		tot_incorrect = tot_incorrect:add(incorrect:sum())
 		tot_evals = tot_evals:add(incorrect:size(1))
+		--print(torch.sum(conf_hist))
 	end
 end
 if action=='generate' then
@@ -190,6 +201,9 @@ elseif action=='evaluate' then
 	print('Total images evaluated:'.. tot_evals[1])
 	print('Total incorrect predictions:'.. tot_incorrect[1])
 	print('Percentage Error:'.. tot_incorrect:div(tot_evals[1]):mul(100)[1].. '%')
+	print(conf_hist)
+	torch.save('conf_hist_correctsamples.t7', conf_hist)
+	gnuplot.plot(torch.linspace(1,10,10),conf_hist)
 end
 
 print('Succesfully Completed The Code Run')

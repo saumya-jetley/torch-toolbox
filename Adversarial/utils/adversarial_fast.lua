@@ -32,8 +32,9 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast, atten)
    local y_hat = outputs[#outputs]
 
    -- use predication as label if not provided
-   local _, target = nil , y
+   local _, target = nil, y
    if target == nil then
+      print('still going here is wrong')
       _, target = y_hat:max(y_hat:dim())
    end
 
@@ -41,7 +42,7 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast, atten)
    local cost = loss:forward(y_hat, target)
    local cost_grad = loss:backward(y_hat, target)
    --local x_grad = model:backward(x, cost_grad)
-   outputs[#output+1]=cost_grad
+   outputs[#outputs+1]=cost_grad
    local x_grad = model_backward(model, atten, x, outputs)
    local noise = (x_grad:sign():mul(intensity/255)):double()
 
