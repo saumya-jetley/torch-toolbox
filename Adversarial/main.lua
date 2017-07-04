@@ -172,23 +172,24 @@ for ind, ind_batch in ipairs(batch_indices) do
 		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, im_file, lb_file, path_save)
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
-		model:evaluate()
-		print(model)
+		
+		--model:evaluate() -- doesnt work **sj
 		local outputs  = model_forward(model, atten, input_imgs)
 		local y_hat = aug_utils.cast(nn.SoftMax()):forward(outputs[#outputs])
 
 		local val, idx = y_hat:max(y_hat:dim())
 		local incorrect = torch.ne(idx:double(), input_lbs)
-		local conf_quant = torch.floor(val*10)
-	
+		local conf_quant = torch.floor((val-0.000001)*10)
+		
 		for bind=1,batch_size,1 do
 			if incorrect[bind][1]==0 then --it is correct
 				conf_hist[conf_quant[bind][1]+1] = conf_hist[conf_quant[bind][1]+1]+1
 			end
 		end		
-		print('confidence:') print(val)		
-		print('**Index:') print(idx) 
-		print ('GT index:') print(input_lbs)
+		--print('confidence:') print(val)		
+		--print('**Index:') print(idx) 
+		--print ('GT index:') print(input_lbs)
+		
 		--compare with the ground truth
 		--accumulate the error
 		tot_incorrect = tot_incorrect:add(incorrect:sum())

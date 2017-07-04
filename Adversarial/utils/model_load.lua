@@ -6,7 +6,9 @@ function model_load(names, type_model, atten_code, cast)
 			if type_model=='caffe' then
 				require 'loadcaffe'
 				model_wts = loadcaffe.load(names[1],names[2])
-				model_wts.modules[#model_wts]=nil --removing the softmax layer at the end for consistency with code
+				model_wts:remove(#model_wts) --removing the softmax layer at the end for consistency with code
+				model_wts:remove(44) --removing dp1 (**sj)
+				model_wts:remove(41) --removing dp2 (**sj)
 			else
 				model_wts = torch.load(names[1])
 			end
