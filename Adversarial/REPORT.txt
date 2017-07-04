@@ -29,9 +29,9 @@ Hence, if the batchsize = tablesize extra {} required; else no extra {} required
 4. Tests in mind:
 -- test adv at different epsilons (generated and evaluated using both the models) - test on both the train and test set
 -- histogram of the confidence scores on the test set (for 0 epsilon and others)
--- *visualize the images for adversaries (mainly for CUBS)*
+-- *visualize the images for adversaries (mainly for CUBS) - more detailed analysis required*
 5. Imagenet tests
--- *Evaluate on val set without any adversarial noise (get numbers to confirm correctness)*
+-- *Evaluate on val set without any adversarial noise (get numbers to confirm correctness) - test with multiple crops and top-5 error*
 -- *Get the histogram of confidence scores on val set*
 -- *Evaluate with adversarial noise on ImagNet val set and get histogram of confidence scores*
 
