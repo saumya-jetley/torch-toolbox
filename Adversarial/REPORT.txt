@@ -1,4 +1,4 @@
--[[ *****Report of working state******
+*****Report of working state******
 1. Works for original overfeat network 
 	1. works in generate mode 
 		- unit batch and larger
@@ -22,11 +22,18 @@ Keeping it for future checks
 The table.unpack function returns a TABLE when it is a SUBSET else it unpacks as an ARRAY
 Hence, if the batchsize = tablesize extra {} required; else no extra {} required
 
+*Milestones*
 1. models to be shared (all 4 or more)
 2. the variable during the fwd run to be shared (via global variable maybe)
 3. fwd and bkwd run for comparison at different epsilons
 4. Tests in mind:
--- test adv at different epsilons (generated and evaluated using both the models)
+-- test adv at different epsilons (generated and evaluated using both the models) - test on both the train and test set
 -- histogram of the confidence scores on the test set (for 0 epsilon and others)
---]]
+-- *visualize the images for adversaries (mainly for CUBS)*
+5. Imagenet tests
+-- *Evaluate on val set without any adversarial noise (get numbers to confirm correctness)*
+-- *Get the histogram of confidence scores on val set*
+-- *Evaluate with adversarial noise on ImagNet val set and get histogram of confidence scores*
 
+
+*Other tools and command used*
