@@ -1,9 +1,16 @@
 require 'nn'
+require 'cunn'
 require 'nngraph'
-function model_load(names, atten_code, cast)
+function model_load(names, type_model, atten_code, cast)
 	if atten_code==0 then
-		model_wts = torch.load(names[1])
-		model = nn.Sequential():add(nn.Copy('torch.DoubleTensor', torch.type(cast(torch.Tensor())))):add(cast(model_wts))
+			if type_model=='caffe' then
+				require 'loadcaffe'
+				model_wts = loadcaffe.load(names[1],names[2])
+				model_wts.modules[#model_wts]=nil --removing the softmax layer at the end for consistency with code
+			else
+				model_wts = torch.load(names[1])
+			end
+			model = nn.Sequential():add(nn.Copy('torch.DoubleTensor', torch.type(cast(torch.Tensor())))):add(cast(model_wts))
 		return model
 	elseif atten_code==1 then
                 model_wts_local = torch.load(names[1])
