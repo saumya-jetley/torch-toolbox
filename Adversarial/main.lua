@@ -20,6 +20,7 @@ cmd_params={
 action = 'generate',
 mode = 'unproc', -- 'preproc'
 path_model = '{"#overfeat-torch/model.net"}',
+type_model = 'torch',
 atten = 0,
 batch_size = 2,
 image_size = 231,        -- small net requires 231x231
@@ -29,8 +30,8 @@ path_save = 'adv_images',
 path_label = '#dataset/label_gt.lua', -- label file (in order*)
 path_img = '#dataset/image_gt.lua', -- image file (in order*)
 list_labels = '#dataset/overfeat_label.lua',
-mean = 118.380948/255,   -- global mean used to train overfeat
-std = 61.896913/255,     -- global std used to train overfeat
+mean = '{118.380948/255}',   -- global mean used to train overfeat
+std = '{61.896913/255}',     -- global std used to train overfeat
 platformtype = 'cuda',
 gpumode = 1,
 gpusetdevice = 1,
@@ -45,6 +46,7 @@ aug_utils = require 'utils/aug_utils.lua'
 -- Obtaining the input parameters in work variables
 mode = cmd_params.mode
 path_model = cmd_params.path_model
+type_model = cmd_params.type_model
 atten= cmd_params.atten
 batch_size = cmd_params.batch_size
 image_size = cmd_params.image_size
@@ -111,7 +113,7 @@ model_names = loadstring('return'.. path_model)()
 if not paths.filep(model_names[1]) then
   print('model not found!') 
 else
-  model = model_load(model_names, atten, aug_utils.cast)
+  model = model_load(model_names,type_model, atten, aug_utils.cast)
 end
 
 -- randomize the images indices for access
@@ -170,6 +172,8 @@ for ind, ind_batch in ipairs(batch_indices) do
 		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, im_file, lb_file, path_save)
 	elseif action=='evaluate' then -- evaluate the accuracy
 		--forward pass/ get prediction
+		model:evaluate()
+		print(model)
 		local outputs  = model_forward(model, atten, input_imgs)
 		local y_hat = aug_utils.cast(nn.SoftMax()):forward(outputs[#outputs])
 
@@ -182,8 +186,9 @@ for ind, ind_batch in ipairs(batch_indices) do
 				conf_hist[conf_quant[bind][1]+1] = conf_hist[conf_quant[bind][1]+1]+1
 			end
 		end		
-		--print('confidence:') print(val)		
-		--print('**Index:') print(idx) print ('GT index:') print(input_lbs)
+		print('confidence:') print(val)		
+		print('**Index:') print(idx) 
+		print ('GT index:') print(input_lbs)
 		--compare with the ground truth
 		--accumulate the error
 		tot_incorrect = tot_incorrect:add(incorrect:sum())
