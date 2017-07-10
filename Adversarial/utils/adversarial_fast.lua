@@ -7,7 +7,7 @@ model_backward=require('utils/model_backward')
 -- "Explaining and harnessing adversarial examples"
 -- Ian Goodfellow, 2015
 local function adversarial_fast(model, loss, x, y, std, intensity, cast, atten)
-   assert(loss.__typename == 'nn.CrossEntropyCriterion')
+   assert(loss.__typename == 'nn.CrossEntropyCriterion') --combines LogSoftMax and NLL
    local intensity = intensity or 1
 
    -- consider x as batch
@@ -32,7 +32,7 @@ local function adversarial_fast(model, loss, x, y, std, intensity, cast, atten)
    local y_hat = outputs[#outputs]
 
    -- use predication as label if not provided
-   local _, target = nil, y
+   local _, target = nil, y --working with the GT
    if target == nil then
       print('still going here is wrong')
       _, target = y_hat:max(y_hat:dim())
