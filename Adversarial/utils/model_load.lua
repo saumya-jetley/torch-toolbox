@@ -6,12 +6,17 @@ function model_load(names, type_model, atten_code, cast)
 			if type_model=='caffe' then
 				require 'loadcaffe'
 				model_wts = loadcaffe.load(names[1],names[2])
-				model_wts:remove(#model_wts) --removing the softmax layer at the end for consistency with code
-				model_wts:remove(44) --removing dp1 (**sj)
-				model_wts:remove(41) --removing dp2 (**sj)
 			else
 				model_wts = torch.load(names[1])
 			end
+			model_wts:replace(function(module)
+			   if torch.typename(module) == 'nn.SoftMax' then
+			      return nn.Identity()
+			   else
+			      return module
+			   end
+			end)
+			print(model_wts)
 			model = nn.Sequential():add(nn.Copy('torch.DoubleTensor', torch.type(cast(torch.Tensor())))):add(cast(model_wts))
 		return model
 	elseif atten_code==1 then
