@@ -35,5 +35,11 @@ Hence, if the batchsize = tablesize extra {} required; else no extra {} required
 -- *Get the histogram of confidence scores on val set*
 -- *Evaluate with adversarial noise on ImagNet val set and get histogram of confidence scores*
 
+ImageNet-Dense Evaluation at a single scale
+-- Change the fully-connected layers to convolutional ones (f.s. 7x7, 1x1, 1x1)
+-- Change the weight format from fc to conv (output_features x input_features x <kernel size>)
+-- Keep dense convolution with a step_size=1 and padding=acc. to the kernel
+-- Try with cropped image evaluation, conv should yield same results as with fc setup
+
 
 *Other tools and command used*
