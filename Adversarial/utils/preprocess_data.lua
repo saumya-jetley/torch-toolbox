@@ -3,7 +3,7 @@ require 'image'
 
 torch.setdefaulttensortype('torch.FloatTensor')
 
-local function preprocess_data(image_list, label_list, batch_size, image_size, mean, std)
+local function preprocess_data(image_list, label_list, batch_size, image_size, mean, std, norm_range)
 	--create the mean image for subtraction
 	local mean = loadstring('return'.. mean)()
 	local mean_tensor = torch.Tensor(mean)
@@ -38,7 +38,7 @@ local function preprocess_data(image_list, label_list, batch_size, image_size, m
 		local sub_h = math.floor((raw_image:size(2)-image_size)/2)+1
 		local sub_w = math.floor((raw_image:size(3)-image_size)/2)+1
 		local sq_image = raw_image[{{},{sub_h,sub_h+image_size-1},{sub_w,sub_w+image_size-1}}]
-		local proc_image = sq_image:permute(2,3,1):mul(255):add(-mean_image):cdiv(std_image):permute(3,1,2)
+		local proc_image = sq_image:permute(2,3,1):mul(norm_range):add(-mean_image):cdiv(std_image):permute(3,1,2)
 		image_tensor[i]:copy(proc_image)
 		label_tensor[i] = label_nlist[i]
 	end
