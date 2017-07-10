@@ -24,6 +24,7 @@ type_model = 'torch',
 atten = 0,
 batch_size = 2,
 image_size = 231,        -- small net requires 231x231
+norm_range = 1,
 noise_intensity = 1,           -- pixel intensity for gradient sign
 path_save = 'adv_images',
 --path_img = 'data.t7',
@@ -50,6 +51,7 @@ type_model = cmd_params.type_model
 atten= cmd_params.atten
 batch_size = cmd_params.batch_size
 image_size = cmd_params.image_size
+norm_range = cmd_params.norm_range
 noise_intensity = cmd_params.noise_intensity
 path_save = cmd_params.path_save
 --path_img = cmd_params.path_img
@@ -135,17 +137,17 @@ for ind, ind_batch in ipairs(batch_indices) do
 		input_lbs = labels:index(1,ind_batch)
 	elseif mode=='unproc' then
 		--select the batch_sized subsets using unpack
-		input_imgs, input_lbs = preprocess_data({unpack(images,(ind-1)*batch_size+1,ind*batch_size)}, {unpack(labels,(ind-1)*batch_size+1,ind*batch_size)}, batch_size, image_size, mean, std)
+		input_imgs, input_lbs = preprocess_data({unpack(images,(ind-1)*batch_size+1,ind*batch_size)}, {unpack(labels,(ind-1)*batch_size+1,ind*batch_size)}, batch_size, image_size, mean, std, norm_range)
 	end  
 	--OPERATION
 	if action=='generate' then --generate 'adversarial examples'
-		-- get trained model (switch softmax to logsoftmax) & set loss
 		--model.modules[#model.modules] = nn.LogSoftMax()
 		--local loss = nn.ClassNLLCriterion()
+		----- The above together form 'CrossEntropyCriterion'
 		local loss = aug_utils.cast(nn.CrossEntropyCriterion())
 		local img_adv = adversarial_fast(model, loss, input_imgs:clone(), input_lbs:clone(), std, noise_intensity, aug_utils.cast, atten)
+		
 		--model.modules[#model.modules] = nn.SoftMax()
-
 		--[[
 		-- check prediction results
 		local pred = model:forward(input_imgs)
@@ -171,18 +173,26 @@ for ind, ind_batch in ipairs(batch_indices) do
 		-- save the images in the save_folder
 		save_id = save_batch(img_adv_normal:clone(), input_lbs:clone(), save_id, batch_size, im_file, lb_file, path_save)
 	elseif action=='evaluate' then -- evaluate the accuracy
-		--forward pass/ get prediction
-		
-		--model:evaluate() -- doesnt work **sj
+		----- model:evaluate() -- doesnt work **sj
+		model:replace(function(module)
+   			if torch.typename(module) == 'nn.Dropout' then
+				return nn.Identity()
+   			else
+      				return module
+   			end
+			end)
 		local outputs  = model_forward(model, atten, input_imgs)
-		local y_hat = aug_utils.cast(nn.SoftMax()):forward(outputs[#outputs])
-
-		local val, idx = y_hat:max(y_hat:dim())
-		local incorrect = torch.ne(idx:double(), input_lbs)
-		local conf_quant = torch.floor((val-0.000001)*10)
+		local y_hat = aug_utils.cast(nn.SoftMax()):forward(outputs[#outputs]):squeeze()
+			
+		--local val, idx = y_hat:max(y_hat:dim()) -- only useful for top-1
+		local val, idx = y_hat:sort(y_hat:dim(),true) -- useful for top-5 (descending order)
+		local correct = torch.eq(idx[{{},{1,5}}]:double(), torch.repeatTensor(torch.reshape(input_lbs,input_lbs:size(1),1),1,5))
+		print(val[{{},{1,5}}])
+		local incorrect = 1-torch.sum(correct,2):squeeze()
+		local conf_quant = torch.floor((torch.sum(torch.cmul(val[{{},{1,5}}],aug_utils.cast(correct)),2)-0.000001)*10)
 		
 		for bind=1,batch_size,1 do
-			if incorrect[bind][1]==0 then --it is correct
+			if incorrect[bind]==0 then --it is correct
 				conf_hist[conf_quant[bind][1]+1] = conf_hist[conf_quant[bind][1]+1]+1
 			end
 		end		
