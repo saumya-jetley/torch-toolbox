@@ -187,7 +187,7 @@ for ind, ind_batch in ipairs(batch_indices) do
 		--local val, idx = y_hat:max(y_hat:dim()) -- only useful for top-1
 		local val, idx = y_hat:sort(y_hat:dim(),true) -- useful for top-5 (descending order)
 		local correct = torch.eq(idx[{{},{1,5}}]:double(), torch.repeatTensor(torch.reshape(input_lbs,input_lbs:size(1),1),1,5))
-		print(val[{{},{1,5}}])
+		--print(val[{{},{1,5}}])
 		local incorrect = 1-torch.sum(correct,2):squeeze()
 		local conf_quant = torch.floor((torch.sum(torch.cmul(val[{{},{1,5}}],aug_utils.cast(correct)),2)-0.000001)*10)
 		
