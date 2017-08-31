@@ -1,4 +1,4 @@
-# MOVED TO A SEPARATE REPOSITORY - Adversaries_in_attention
+# MOVED TO SEPARATE REPO - Adversaries_in_attention
 
 ## Adversarial example generator
 
