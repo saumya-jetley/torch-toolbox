@@ -6,7 +6,7 @@ This script generates adversarial examples for convolutional neural networks
 using fast gradient sign method` presented in `Explaining and harnessing
 adversarial examples` (Goodfellow et al. 2015).
 
-## Under-construction
+### Under-construction
 
 The script can be provided the following inputs:
 - mode: preproc: Path to the image folder which contains images for generating adversarial examples on. Things to check inside the code for this:
@@ -17,7 +17,7 @@ The script can be provided the following inputs:
 - mode: unproc: Path to the t7 file containing images and labels (both)
 - Path of the trained model
 
-###Dependency
+### Dependency
 
 This script requires trained [OverFeat](https://github.com/sermanet/OverFeat) network.
 Running the `example.lua` or the snippet will automatically create the model
